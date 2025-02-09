@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DECIMAL
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 
@@ -19,5 +19,21 @@ class User(Base):
     longitude = Column(Float, nullable=True) 
 
 
-Base.metadata.create_all(engine)
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    product_name = Column(String)
+    product_img = Column(String, nullable=True)
+    product_price = Column(DECIMAL(20,2))
+
+
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    product_id = Column(Integer, ForeignKey('products.id'))
+    total_price = Column(DECIMAL(20,2))
+    type = Column(String)
+
 
