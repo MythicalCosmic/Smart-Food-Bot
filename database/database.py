@@ -10,9 +10,10 @@ SessionLocal = sessionmaker(bind=engine)
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True, nullable=False)
+    telegram_id = Column(Integer, unique=True)
     username = Column(String, nullable=True)
     name = Column(String, nullable=True)
+    real_name = Column(String)
     phone_number = Column(String, nullable=True) 
     step = Column(String)
     latitude = Column(Float, nullable=True)  
