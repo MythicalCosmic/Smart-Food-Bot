@@ -3,6 +3,7 @@ from aiogram import Router
 from keyboards.keyboard import *
 from utils.utils import *
 from aiogram.filters import Command
+from database.database import *
 
 router = Router()
 
@@ -22,6 +23,8 @@ def get_reply_markup_for_step(step):
         return location_keyboard
     elif step == "location":
         return web_app_keyboard
+    elif step == "order_of_user":
+        return menu_keys
     else:
         return keyboard
 
@@ -92,19 +95,6 @@ async def handle_order(message: Message):
     session.close()
 
 
-@router.message(lambda message: message.text == "👈 Ortga")
-async def handle_back(message: Message):
-    session = SessionLocal()
-    telegram_id = message.from_user.id
-    user = session.query(User).filter_by(telegram_id=telegram_id).first()
-
-    if user:
-        go_back_one_step(user, session)
-        await message.answer("⬅️ Orqaga qaytdik!", reply_markup=get_reply_markup_for_step(user.step))
-    else:
-        await message.answer("⚠️ Xatolik: Avval /start ni bosing.")
-    session.close()
-
 
 @router.message(lambda message: message.location)
 async def handle_location(message: Message):
@@ -125,6 +115,41 @@ async def handle_location(message: Message):
     else:
         await message.answer("⚠️ Xatolik: Avval /start ni bosing.")
     session.close()
+
+
+@router.message(lambda message: message.text == "🛍️ Mening buyurtmalarim")
+async def handle_order_of_user(message: Message):
+    session = SessionLocal()
+    telegram_id = message.from_user.id
+
+    user = session.query(User).filter_by(telegram_id=telegram_id).first()
+
+    if user:
+        orders = session.query(Order).filter_by(user_id=user.id).all()
+        user.step = "order_of_user"
+        session.commit()
+
+        if orders:
+            response_text = "🍟 Sizning buyurtmalaringiz:\n\n"
+            await message.answer(response_text)
+            for order in orders:
+                product = session.query(Product).filter_by(id=order.product_id).first()
+                product_name = product.product_name if product else "Noma'lum mahsulot"
+                order_text = (
+                    f"🔖 Buyurtma ID: {order.id}\n"
+                    f"🍽 Mahsulot Nomi: {product_name}\n"
+                    f"📌 Buyurtma turi: {order.type}\n"
+                )
+
+                await message.answer(order_text, reply_markup=back_from_order_of_user)
+        else:
+            await message.answer("📭 Sizda hali buyurtmalar mavjud emas.")
+
+    else:
+        await message.answer("⚠️ Xatolik: Avval /start ni bosing.")
+
+    session.close()
+
 
 @router.message()
 async def fallback_handler(message: Message):

@@ -35,3 +35,10 @@ web_app_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     one_time_keyboard=True, 
 )
+
+back_from_order_of_user = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="👈 Ortga")]
+    ],
+    resize_keyboard=True,
+)
